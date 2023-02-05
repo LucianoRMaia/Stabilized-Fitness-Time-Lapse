@@ -51,7 +51,7 @@ def main():
   mediapipePose = MediapipePose()
 
   #Get params from the original image
-  originalImage = cv2.imread("man.jpg")
+  originalImage = cv2.imread("OriginalImage.jpg")
   xOrg,yOrg,visOrg,image = mediapipePose.getOriginalPoseParams(originalImage)
 
   #Initializes the camera
