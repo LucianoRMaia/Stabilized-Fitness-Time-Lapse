@@ -5,6 +5,9 @@ mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_pose = mp.solutions.pose
 
+#constants
+ACCEPTANCERADIUS = 20 #radius of acceptance of a point in the pose. Points that are this distance or less from the original, are considered accepted
+
 #This class is responsible for returning the positions and visibilities of the different anchor points in the pose
 class MediapipePose:
   def __init__(self):
@@ -19,7 +22,6 @@ class MediapipePose:
 
     if results.pose_landmarks != None:
       for point in results.pose_landmarks.landmark:
-        #TODO HERE I HAVE TO SAVE EACH VALUE OF X Y AND VIS, CURRENTLY I'M JUST PASSING THE LAST VALUE, I'LL FIX TOMORROW
         x.append(int(point.x*image.shape[1]))
         y.append(int(point.y*image.shape[0]))
         vis.append(point.visibility)
@@ -27,7 +29,7 @@ class MediapipePose:
     return x,y,vis,image
 
   def getOriginalPoseParams(self,originalImage):
-    #TODO: modify this function to save the params and in the future it'll search the saved params instead of reprocessing the Original image again
+    #TODO: not critical - modify this function to save the params and in the future it'll search the saved params instead of reprocessing the Original image again
     xOrg,yOrg,visOrg,image =  self.getPoseParams(originalImage)
 
     if xOrg != []:
@@ -50,7 +52,7 @@ def drawPoses(image,xOrg,yOrg,visOrg,xCurrent,yCurrent,visCurrent):
       if (i==23 or i==24):
         break
       distanceBetweenPoints = np.sqrt((xOrg[i]-xCurrent[i])**2+(yOrg[i]-yCurrent[i])**2)
-      if distanceBetweenPoints <= 10: #current point is within acceptable range of original point
+      if distanceBetweenPoints <= ACCEPTANCERADIUS: #current point is within acceptable range of original point
         cv2.circle(image, (xCurrent[i], yCurrent[i]), radius=3, color=(0, 255, 0), thickness=-1)
       else:
         currentMatchesOriginal = False
@@ -69,6 +71,8 @@ def main():
 
   #Initializes the camera
   cap = cv2.VideoCapture(0)
+  cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+  cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
   success = False
   while not success:
     success, image = cap.read()
@@ -94,9 +98,9 @@ def main():
     #    mp_pose.POSE_CONNECTIONS,
     #    landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style())
     # Flip the image horizontally for a selfie-view display.
-    cv2.imshow('Resultado img Current', cv2.flip(annotatedImage, 1))
-    cv2.imshow('Resultado img Orginal', cv2.flip(annotatedOriginalImage, 1))
-    cv2.imshow('Resultado Completo', cv2.flip(resultImage, 1))
+    #cv2.imshow('Resultado img Current', cv2.flip(annotatedImage, 1))
+    cv2.imshow('Orginal img', cv2.flip(cv2.resize(annotatedOriginalImage,(320,180)), 1))
+    cv2.imshow('Complete Result', cv2.flip(cv2.resize(resultImage,(1600,900)), 1))
     if cv2.waitKey(1) & 0xFF == 27:
       break
     if currentMatchesOriginal:
